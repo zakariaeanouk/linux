@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import sys
+import os
+import logging
+
+def more(file_path):
+    # Configurer le logging
+    log_directory = '/home/IDFS/var'  # Assurez-vous que le rÃ©pertoire existe et a les permissions nÃ©cessaires
+    log_file_path = os.path.join(log_directory, 'log', 'logfile.log')
+
+    # CrÃ©er le rÃ©pertoire s'il n'existe pas
+    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+    logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    try:
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+            page_size = 10
+            current_line = 0
+
+            while current_line < len(lines):
+                for line in lines[current_line:current_line + page_size]:
+                    print(line, end='')
+
+                user_input = input("Press Enter for more, q to quit: ")
+                if user_input.lower() == 'q':
+                    break
+
+                current_line += page_size
+
+    except FileNotFoundError:
+        logging.error(f"Le fichier '{file_path}' n'existe pas.".encode('utf-8'))
+    except Exception as e:
+        logging.error(f"Une erreur s'est produite : {e}")
+
+if __name__== "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <nom_fichier>")
+    else:
+        file_path = sys.argv[1]
+        more(file_path)

@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import shutil
+import os
+import argparse
+import logging
+
+def copier_fichier(source, destination):
+    try:
+        shutil.copy(source, destination)
+        logging.info(f"Fichier {source} copie avec succes vers {destination}".encode('utf-8'))
+    except FileNotFoundError:
+        logging.error(f"Erreur : le fichier {source} n'existe pas.".encode('utf-8'))
+    except PermissionError:
+        logging.error(f"Erreur : vous n'avez pas la permission de copier le fichier {source}.".encode('utf-8'))
+    except Exception as e:
+        logging.error(f"Erreur inattendue : {e}".encode('utf-8'))
+
+def main():
+    # Configuration du logging
+    logging.basicConfig(filename='/home/IDFS/var/log/logfile.log',level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+
+    parser = argparse.ArgumentParser(description='Emuler la commande cp en Python.')
+    parser.add_argument('source', help='Chemin du fichier source.')
+    parser.add_argument('destination', help='Chemin de la destination.')
+    args = parser.parse_args()
+
+    copier_fichier(args.source, args.destination)
+
+if __name__ == '__main__':
+    main()

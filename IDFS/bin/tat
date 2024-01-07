@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import tarfile
+import os
+import sys
+import logging
+from pathlib import Path
+
+def configure_logging():
+    try:
+        # Chemin du rÃ©pertoire log (chemin relatif)
+        log_directory = '/home/IDFS/var/log'
+        # Configuration du logging
+        logging.basicConfig(filename=os.path.join(log_directory, 'logfile.log'), level=logging.INFO,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+    except Exception as e:
+        print(f"Une erreur s'est produite lors de la configuration du logging : {e}")
+
+def create_tar_archive(output_filename, files_to_archive):
+    try:
+        with tarfile.open(output_filename, 'w') as tar:
+            for file in files_to_archive:
+                tar.add(file)
+        logging.info(f"Archive {output_filename} creee avec succes.")
+    except Exception as e:
+        logging.error(f"Une erreur s'est produite : {e}")
+
+if __name__ == "__main__":
+    configure_logging()
+
+    if len(sys.argv) < 3:
+        print("Utilisation : tat <nom_archive.tar> <fichier1> <fichier2> ...")
+        logging.error("Nombre incorrect d'arguments passes.")
+        sys.exit(1)
+
+    archive_name = sys.argv[1]
+    files_to_archive = sys.argv[2:]
+
+    create_tar_archive(archive_name, files_to_archive)
+
+
+ 

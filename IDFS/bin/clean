@@ -1,0 +1,30 @@
+#!/usr/bin/env python3 
+# -*- coding: utf-8 -*-
+import os
+import subprocess
+import logging
+
+def clean():
+    try:
+        # Obtenir le chemin du repertoire log
+        base_directory = "/home/IDFS/var"
+        log_directory = os.path.join(base_directory, "log")
+        log_file = log_directory / "logfile.log"
+        os.makedirs(log_directory, exist_ok=True)
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+
+        # Effacer le terminal
+        os.system('clear')  # Utilisez 'cls' a la place de 'clear' sur Windows
+
+        # Enregistrez le nettoyage dans le fichier de logs
+        logging.info("Terminal nettoye avec succes.".encode('utf-8'))
+
+    except Exception as e:
+        print(f"Une erreur inattendue s'est produite : {e}")
+        logging.error(f"Erreur inattendue : {e}".encode('utf-8'))
+
+if __name__ == "__main__":
+    clean()

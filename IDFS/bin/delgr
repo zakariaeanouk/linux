@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+import os
+import logging
+
+def galaxygdel():
+    try:
+        # Configuration du logging
+        logging.basicConfig(filename='/home/IDFS/var/log/logfile.log',level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+
+        # VÃ©rifier si l'utilisateur actuel est root
+        if os.geteuid() != 0:
+            logging.warning("Permission denied. Vous devez exÃ©cuter ce script en tant que superutilisateur (root).")
+            return
+
+        # Saisie du nom du groupe Ã  supprimer
+        groupname = input("Entrez le nom du groupe Ã  supprimer : ")
+
+        # Emplacement du fichier simulÃ© ID1FS/etc/group (chemin absolu)
+        group_file_path = '/home/IDFS/etc/group'
+
+        # VÃ©rifier si le groupe existe
+        with open(group_file_path, 'r') as group_file:
+            existing_groups = [line.split(':')[0] for line in group_file.readlines()]
+
+        if groupname not in existing_groups:
+            logging.warning(f"Le groupe {groupname} n'existe pas.")
+            return
+
+        # Supprimer l'entrÃ©e dans le fichier simulÃ© ID1FS/etc/group
+        with open(group_file_path, 'w') as group_file:
+            # RÃ©Ã©crire le fichier sans le groupe Ã  supprimer
+            for line in existing_groups:
+                if line != groupname:
+                    group_file.write(f"{line}
+")
+
+        logging.info(f"Le groupe {groupname} a Ã©tÃ© supprimÃ© avec succÃ¨s.")
+    except Exception as e:
+        logging.error(f"Erreur lors de la suppression du groupe {groupname} : {e}")
+
+# Utilisation de la fonction
+galaxygdel()

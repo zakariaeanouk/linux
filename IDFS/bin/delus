@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# -- coding: utf-8 --
+import os
+import shutil
+import logging
+import sys
+import pwd
+import grp
+from datetime import datetime
+
+# Emplacement du fichier simulÃ© IDFS/var/log/logfile.log (chemin absolu)
+log_file_path = os.path.join('/home/IDFS/var/log', 'logfile.log')
+
+# Configuration du logging
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def delus(username):
+    try:
+        print(f"Suppression de l'utilisateur {username} en cours...")
+
+        # VÃ©rifier si l'utilisateur actuel est root
+        if os.geteuid() != 0:
+            message = "Permission denied. Vous devez executer ce script en tant que superutilisateur (root)."
+            logging.error(message)
+            print(message)
+            return
+
+        # Emplacement du rÃ©pertoire home dans IDFS (chemin absolu)
+        idfs_home_dir = '/home/IDFS/home'
+
+        # Chemins absolus des fichiers simulÃ©s IDFS/etc/passwd, IDFS/etc/shadow et IDFS/etc/group
+        passwd_file_path = '/home/IDFS/etc/passwd'
+        shadow_file_path = '/home/IDFS/etc/shadow'
+        group_file_path = '/home/IDFS/etc/group'
+
+        # RÃ©cupÃ©rer les informations de l'utilisateur et du groupe
+        user_info = pwd.getpwnam(username)
+        group_info = grp.getgrgid(user_info.pw_gid)
+
+        # Lire les lignes des fichiers passwd, shadow, et group
+        with open(passwd_file_path, 'r') as passwd_file,              open(shadow_file_path, 'r') as shadow_file,              open(group_file_path, 'r') as group_file:
+
+            passwd_lines = passwd_file.readlines()
+            shadow_lines = shadow_file.readlines()
+            group_lines = group_file.readlines()
+
+        # Filtrer les lignes pour exclure l'utilisateur Ã  supprimer
+        new_passwd_lines = [line for line in passwd_lines if not line.startswith(f"{username}:")]
+        new_shadow_lines = [line for line in shadow_lines if not line.startswith(f"{username}:")]
+        new_group_lines = [line for line in group_lines if not line.startswith(f"{username}:")]
+
+        # Ãcrire les nouvelles lignes dans les fichiers passwd, shadow, et group
+        with open(passwd_file_path, 'w') as passwd_file,              open(shadow_file_path, 'w') as shadow_file,              open(group_file_path, 'w') as group_file:
+
+            passwd_file.writelines(new_passwd_lines)
+            shadow_file.writelines(new_shadow_lines)
+            group_file.writelines(new_group_lines)
+
+        # Supprimer le rÃ©pertoire personnel de l'utilisateur
+        user_home_dir = os.path.join(idfs_home_dir, username)
+        shutil.rmtree(user_home_dir)
+
+        message = f"L'utilisateur {username} a Ã©tÃ© supprimÃ© avec succÃ¨s du fichier shadow, group et du rÃ©pertoire personnel."
+        logging.info(message)
+        print(message)
+
+    except FileNotFoundError as e:
+        message = f"Fichier introuvable : {e}"
+        logging.error(message)
+        print(message)
+    except Exception as e:
+        message = f"Erreur lors de l'Ã©criture dans les fichiers ou suppression du rÃ©pertoire personnel : {e}"
+        logging.error(message)
+        print(message)
+
+# VÃ©rifier si l'argument est spÃ©cifiÃ© et est Ã©gal Ã  "delus"
+if len(sys.argv) > 1 and sys.argv[1] == "delus":
+    if len(sys.argv) > 2:
+        username = sys.argv[2]
+        delus(username)
+    else:
+        message = "Veuillez specifier le nom d'utilisateur Ã  supprimer."
+        logging.error(message)
+        print(message)

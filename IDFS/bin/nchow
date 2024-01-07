@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import os
+import sys
+import pwd  # Ajouter cette ligne pour importer le module pwd
+from pathlib import Path
+
+def nchow(path, owner):
+    try:
+        # Obtenir le rÃ©pertoire du script en cours
+        script_directory = Path(__file__).resolve().parent
+
+        # Utilisez la fonction os.chown pour changer le proprietaire du fichier/dossier
+        os.chown(path, -1, pwd.getpwnam(owner).pw_uid)  # Correction de cette ligne
+        print(f"Changement de propriÃ©taire de {path} Ã  {owner} effectuÃ© avec succÃ¨s.")
+    except FileNotFoundError:
+        print(f"Le fichier ou dossier {path} n'existe pas.")
+    except PermissionError:
+        print(f"Permission refusÃ©e pour changer le propriÃ©taire de {path}. Veuillez exÃ©cuter en tant qu'administrateur.")
+    except Exception as e:
+        print(f"Une erreur s'est produite : {e}")
+
+if __name__ == "__main__":
+    # VÃ©rifier si les arguments nÃ©cessaires sont fournis
+    if len(sys.argv) != 3:
+        print("Usage: nchow <chemin> <nouveau_proprietaire>")
+        sys.exit(1)
+
+    # Extraire les arguments de la ligne de commande
+    chemin = sys.argv[1]
+    nouveau_proprietaire = sys.argv[2]
+
+    # Appeler la fonction nchow avec les arguments fournis
+    nchow(chemin, nouveau_proprietaire)
+ 

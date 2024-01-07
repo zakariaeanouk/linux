@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# -*- encoding: latin-1 -*-         
+import os
+import sys
+import getpass
+import logging
+
+# Configuration du systÃ¨me de logging
+log_file_path = '/home/IDFS/var/log/logfile.log'
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_current_username():
+    try:
+        return getpass.getuser()
+    except Exception as e:
+        logging.error("Impossible d'obtenir le nom d'utilisateur : %s", e)
+        sys.exit(1)
+
+def remove_directory(directory_name):
+    try:
+        # Obtenir le nom d'utilisateur actuel
+        username = get_current_username()
+        user_home_dir = f"/home/IDFS/home/{username}"
+
+        # Si l'utilisateur actuel n'est pas root, vÃ©rifier les droits de l'utilisateur
+        if username != 'root':
+            if not os.path.samefile(user_home_dir, '/home/IDFS/home/root'):
+                raise PermissionError(f"Permission refusÃ©e. Assurez-vous d'avoir les droits nÃ©cessaires pour supprimer le dossier {directory_name}.")
+
+        # Construire le chemin complet du dossier Ã  supprimer
+        directory_path = os.path.join(user_home_dir, directory_name)
+
+        # VÃ©rifier si le dossier existe avant de le supprimer
+        if os.path.exists(directory_path):
+            # Supprimer le dossier
+            os.rmdir(directory_path)
+            print(f"Le dossier {directory_name} a Ã©tÃ© supprimÃ© du rÃ©pertoire personnel de l'utilisateur {username}.")
+        else:
+            print(f"Le dossier {directory_name} n'existe pas.")
+    except Exception as e:
+        logging.error("Erreur lors de la suppression du dossier : %s", e)
+
+# Exemple d'utilisation
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        logging.error("Usage: supprimer_dossier <nom_dossier>")
+        sys.exit(1)
+
+    directory_to_remove = sys.argv[1]
+    remove_directory(directory_to_remove)
+

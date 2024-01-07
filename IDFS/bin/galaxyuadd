@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+# -- coding: utf-8 --
+import os
+import bcrypt
+from getpass import getpass
+import logging
+from pathlib import Path
+
+def configure_logging():
+    try:
+        log_directory = '/home/IDFS/var/log'
+        log_file = Path(log_directory) / "logfile.log"
+        log_directory = Path(log_directory)
+
+        # Create log directory if it doesn't exist
+        log_directory.mkdir(parents=True, exist_ok=True)
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    except Exception as e:
+        print(f"Une erreur s'est produite lors de la configuration du logging : {e}")
+
+def galaxyuadd():
+    # Configurer le logging
+    configure_logging()
+
+    # VÃ©rifier si l'utilisateur actuel est root
+    if os.geteuid() != 0:
+        logging.error("Permission denied. Vous devez executer ce script en tant que superutilisateur (root).".encode('utf-8'))
+        return
+
+    # Saisie du nom d'utilisateur
+    username = input("Entrez le nom d'utilisateur : ")
+
+    # Saisie du mot de passe en masquant la saisie
+    password = getpass("Entrez le mot de passe : ")
+
+    try:
+        # Emplacement des fichiers simulÃ©s IDFS/etc/passwd, IDFS/etc/shadow et IDFS/etc/group (chemins absolus)
+        passwd_file_path = '/home/IDFS/etc/passwd'
+        shadow_file_path = '/home/IDFS/etc/shadow'
+        group_file_path = '/home/IDFS/etc/group'
+
+        # Emplacement du rÃ©pertoire home dans IDFS (chemin absolu)
+        idfs_home_dir = '/home/IDFS/home'
+
+        # VÃ©rifier si le nom d'utilisateur existe dÃ©jÃ 
+        with open(passwd_file_path, 'r') as passwd_file:
+            existing_usernames = [line.split(':')[0] for line in passwd_file.readlines()]
+
+        if username in existing_usernames:
+            logging.error(f"L'utilisateur {username} existe deja.".encode('utf-8'))
+            return
+
+        # Ajouter l'entrÃ©e dans le fichier simulÃ© IDFS/etc/passwd
+        uid = len(existing_usernames) + 1000  # GÃ©nÃ©rer un UID unique (Ã  adapter selon les besoins)
+        gid = uid  # GÃ©nÃ©rer un GID identique Ã  l'UID (Ã  adapter selon les besoins)
+        home_dir = f'{idfs_home_dir}/{username}'  # DÃ©finir le rÃ©pertoire personnel dans IDFS
+        shell = '/bin/bash'  # DÃ©finir le shell par dÃ©faut (Ã  adapter selon les besoins)
+
+        # GÃ©nÃ©rer le hash du mot de passe
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # Ajouter l'entrÃ©e dans le fichier IDFS/etc/shadow
+        shadow_entry = f"{username}:{password_hash.decode('utf-8')}:"
+        with open(shadow_file_path, 'a') as shadow_file:
+            shadow_file.write(shadow_entry)
+
+        # Ajouter l'entrÃ©e dans le fichier IDFS/etc/passwd avec un placeholder x
+        passwd_entry = f"{username}:x:{uid}:{gid}::{home_dir}:{shell}"
+        with open(passwd_file_path, 'a') as passwd_file:
+            passwd_file.write(passwd_entry)
+
+        # CrÃ©er le rÃ©pertoire personnel avec le nom d'utilisateur dans IDFS/home
+        os.makedirs(home_dir, exist_ok=True)
+
+        # Ajouter l'entrÃ©e dans le fichier IDFS/etc/group
+        with open(group_file_path, 'a') as group_file:
+            group_entry = f"{username}:x:{gid}:"
+            group_file.write(group_entry)
+
+        logging.info(f"L'utilisateur {username} a ete ajoute avec succes.".encode('utf-8'))
+    except Exception as e:
+        logging.error(f"Erreur lors de l'ajout de l'utilisateur {username} : {e}".encode('utf-8'))
+
+# Utilisation de la fonction
+galaxyuadd()
+

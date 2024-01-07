@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import sys
+import os
+import json
+from datetime import datetime
+import logging
+
+def configure_logging():
+    # Chemin du rÃ©pertoire log (chemin relatif)
+    log_dir = 'IDFS/var/log'
+    log_file = "logfile.log"
+    log_path = os.path.join(log_dir, log_file)
+
+    # CrÃ©er le rÃ©pertoire log s'il n'existe pas
+    os.makedirs(log_dir, exist_ok=True)
+
+    # Configuration du logging
+    logging.basicConfig(
+        filename=log_path,
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+
+def mochd(arguments):
+    # Configurer le logging
+    configure_logging()
+
+    if len(arguments) != 3:
+        logging.error("Usage: mochd <mode> <file>")
+        sys.exit(1)
+
+    mode_str, filename = arguments[1], arguments[2]
+
+    try:
+        current_mode = os.stat(filename).st_mode
+        if mode_str[0] == '+':
+            mode = current_mode | int(mode_str[1:], 8)
+        else:
+            mode = int(mode_str, 8)
+    except ValueError:
+        logging.error("Invalid mode. Please provide a valid octal mode.")
+        sys.exit(1)
+
+    try:
+        os.chmod(filename, mode)
+        logging.info(f"Changed permissions of '{filename}' to {oct(mode)[2:]}")
+
+        # Update metadata
+        update_metadata(filename, mode)
+
+    except FileNotFoundError:
+        logging.error(f"File '{filename}' not found.")
+        sys.exit(1)
+    except PermissionError:
+        logging.error(f"Permission denied: '{filename}'")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        sys.exit(1)
+
+def update_metadata(filename, new_mode):
+    try:
+        # Metadata file path (chemin relatif)
+        output_file = "IDFS/etc/metadata"
+
+        # Check if metadata file exists
+        if os.path.isfile(output_file):
+            # If it exists, read existing metadata
+            with open(output_file, "r") as f:
+                try:
+                    existing_metadata = json.load(f)
+                except json.JSONDecodeError:
+                    existing_metadata = []
+
+            # Find the metadata entry for the specified file
+            for entry in existing_metadata:
+                if entry["Nom du fichier"] == filename:
+                    # Update the modification time
+                    entry["Date de derniere modification"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    # Update the permissions in the metadata
+                    entry["Permissions"] = oct(new_mode)[-3:]
+
+                    # Write the updated list to the file
+                    with open(output_file, "w") as f:
+                        json.dump(existing_metadata, f, indent=2)
+
+                    logging.info(f"Metadata updated for '{filename}'")
+                    return
+
+            logging.error(f"Metadata entry not found for '{filename}'")
+
+        else:
+            logging.error(f"Metadata file not found at {output_file}")
+
+    except FileNotFoundError:
+        logging.error(f"File '{filename}' does not exist.")
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    mochd(sys.argv)
+
+ 

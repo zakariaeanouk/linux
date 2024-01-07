@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import os
+import signal
+import argparse
+import logging
+
+def tuer_processus(pid, signal_num=signal.SIGTERM):
+    try:
+        # Configuration du logging
+        logging.basicConfig(filename='/home/IDFS/var/log/logfile.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        os.kill(pid, signal_num)
+        logging.info(f"Signal {signal_num} envoye au processus {pid}.".encode('utf-8'))
+    except ProcessLookupError:
+        logging.error(f"Erreur : le processus {pid} n'existe pas.".encode('utf-8'))
+    except PermissionError:
+        logging.error(f"Erreur : vous n'avez pas la permission de tuer le processus {pid}.".encode('utf-8'))
+    except Exception as e:
+        logging.error(f"Erreur inattendue : {e}".encode('utf-8'))
+
+def main():
+    parser = argparse.ArgumentParser(description='Emuler la commande kill en Python.')
+    parser.add_argument('pid', type=int, help='ID du processus a tuer.')
+    parser.add_argument('--signal', type=int, default=signal.SIGTERM, help='Numero du signal (par defaut: SIGTERM).')
+    args = parser.parse_args()
+
+    tuer_processus(args.pid, args.signal)
+
+if __name__ == '__main__':
+    main()
+

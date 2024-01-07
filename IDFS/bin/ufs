@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-     
+import subprocess
+import sys
+import logging
+from pathlib import Path
+
+def configure_logging():
+    try:
+        # Chemin du rï¿½pertoire log (chemin absolu)
+        log_directory = '/home/IDFS/var/log'
+        log_file_path = log_directory / "logfile.log"
+
+        # Crï¿½er le rï¿½pertoire log s'il n'existe pas
+        log_directory.mkdir(parents=True, exist_ok=True)
+
+        # Configuration du logging (correction du nom de la variable)
+        logging.basicConfig(filename=log_file_path, level=logging.DEBUG,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+    except Exception as e:
+        print(f"Une erreur s'est produite lors de la configuration du logging : {e}")
+
+def rfs():
+    try:
+        # Utiliser subprocess pour lancer une nouvelle coquille avec droits d'administration
+        subprocess.check_call(["sudo", "su", "-"])
+        success_message = f"Changement a l'utilisateur root effectue avec succes."
+        print(success_message)
+        logging.info(success_message.encode('utf-8'))
+    except subprocess.CalledProcessError:
+        error_message = f"Impossible de changer a l'utilisateur root."
+        print(error_message)
+        logging.error(error_message.encode('utf-8'))
+
+if __name__ == "__main__":
+    configure_logging()
+    rfs()

@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import os
+import sys
+import getpass
+import logging
+import shutil
+
+# Configuration du systÃ¨me de logging
+log_file_path = '/home/IDFS/var/log/logfile.log'
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_current_username():
+    try:
+        return getpass.getuser()
+    except Exception as e:
+        logging.error("Impossible d'obtenir le nom d'utilisateur : %s", e)
+        sys.exit(1)
+
+def move_file(source_path, destination_path):
+    try:
+        # Obtenir le nom d'utilisateur actuel
+        username = get_current_username()
+        user_home_dir = f"/home/IDFS/home/{username}"
+
+        # Construire les chemins complets du fichier source et du dossier de destination
+        source_file = os.path.join(user_home_dir, source_path)
+        destination_folder = os.path.join(user_home_dir, destination_path)
+
+        # VÃ©rifier si le fichier source existe avant de le dÃ©placer
+        if os.path.exists(source_file):
+            # VÃ©rifier si le dossier de destination existe, sinon le crÃ©er
+            if not os.path.exists(destination_folder):
+                os.makedirs(destination_folder)
+
+            # DÃ©placer le fichier
+            shutil.move(source_file, os.path.join(destination_folder, os.path.basename(source_file)))
+            print(f"Le fichier {source_path} a Ã©tÃ© dÃ©placÃ© vers {destination_path}.")
+        else:
+            print(f"Le fichier {source_path} n'existe pas.")
+    except Exception as e:
+        logging.error("Erreur lors du dÃ©placement du fichier : %s", e)
+
+# Exemple d'utilisation
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        logging.error("Usage: shiftt <source> <destination>")
+        sys.exit(1)
+
+    source_file = sys.argv[1]
+    destination_folder = sys.argv[2]
+    move_file(source_file, destination_folder)
+ 

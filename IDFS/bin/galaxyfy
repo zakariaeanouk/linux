@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import os
+import sys
+import json
+import getpass
+import logging
+from datetime import datetime
+import shutil
+
+# Configuration du systÃ¨me de logging
+log_file_path = '/home/IDFS/var/log/logfile.log'  # Correction du chemin du fichier journal
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_current_username():
+    try:
+        return getpass.getuser()
+    except Exception as e:
+        logging.error("Impossible d'obtenir le nom d'utilisateur : %s", e)
+        sys.exit(1)
+
+def create_directory(directory_name):
+    try:
+        # Obtenir le nom d'utilisateur actuel
+        username = get_current_username()
+        user_home_dir = f"/home/IDFS/home/{username}"
+
+        # Si l'utilisateur actuel n'est pas root, vÃ©rifier les droits de l'utilisateur
+        if username == 'root':
+            if not os.path.samefile(user_home_dir, '/home/IDFS/home/root'):
+                raise PermissionError(f"Permission refusee. Assurez-vous d'avoir les droits necessaires pour creer un dossier dans {user_home_dir}.")
+
+        # Construire le chemin complet du nouveau dossier
+        new_directory_path = os.path.join(user_home_dir, directory_name)
+
+        # CrÃ©er le dossier
+        os.makedirs(new_directory_path, exist_ok=True)  # Ajout de exist_ok pour Ã©viter une erreur si le dossier existe dÃ©jÃ 
+        print(f"Le dossier {directory_name} a ete cree dans le repertoire personnel de l'utilisateur {username}.")
+    except Exception as e:
+        logging.error("Erreur lors de la creation du dossier : %s", e)
+
+# Exemple d'utilisation
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        logging.error("Usage: creer_dossier <nom_dossier>")  # Suppression de encode('utf-8')
+        sys.exit(1)
+
+    new_directory_name = sys.argv[1]
+    create_directory(new_directory_name)
+

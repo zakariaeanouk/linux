@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import os
+import stat
+import datetime
+import pwd
+import grp
+import logging
+
+def list_detailed_content(directory='.'):
+    try:
+        # Get the list of files and directories in the specified directory
+        content = os.listdir(directory)
+
+        # Display details for each item
+        for element in content:
+            full_path = os.path.join(directory, element)
+            stat_info = os.stat(full_path)
+
+            # Convert timestamp to readable format
+            last_modified_date = datetime.datetime.fromtimestamp(stat_info.st_mtime)
+
+            # Get the username and group name
+            owner = pwd.getpwuid(stat_info.st_uid).pw_name
+            group = grp.getgrgid(stat_info.st_gid).gr_name
+
+            # Display permissions as a string
+            permissions = stat.filemode(stat_info.st_mode)
+
+            # Display detailed information to the console
+            print(f"{permissions}	{stat_info.st_nlink}	{owner}	{group}	{stat_info.st_size}	{last_modified_date}	{element}")
+    except Exception as e:
+        logging.error(f'Unexpected error: {e}'.encode('utf-8'))
+
+def main():
+    # Use the function to list detailed content of the current directory
+    list_detailed_content()
+
+if __name__ == '__main__':
+    main()

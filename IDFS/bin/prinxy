@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import argparse
+import logging
+from pathlib import Path
+
+def echo(text, no_newline=False, interpret_special_chars=False):
+    try:
+        # Chemin du repertoire log (chemin absolu)
+        log_directory = '/home/IDFS/var/log'
+        log_file_path = log_directory / "logfile.log"
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+        if interpret_special_chars:
+            # Interpreter les caracteres speciaux
+            text = text.encode('utf-8').decode('unicode_escape')
+
+        # Enregistrement de l'action dans le fichier de logs
+        logging.info(f"Affichage du texte : {text}")
+
+        # Affichage du texte a la console
+        print(text, end='' if no_newline else '
+')
+
+    except Exception as e:
+        # Gerer les erreurs et enregistrer dans le fichier de logs
+        logging.error(f"Erreur inattendue : {e}")
+
+def main():
+    try:
+        parser = argparse.ArgumentParser(description='Imiter la commande echo en Python.')
+        parser.add_argument('text', metavar='TEXTE', type=str, help='Texte a afficher.')
+        parser.add_argument('-n', '--no-newline', action='store_true', help="Ne pas ajouter une nouvelle ligne a la fin.")
+        parser.add_argument('-e', '--interpret-special-chars', action='store_true', help="Interpreter les caracteres speciaux comme \n, \t, etc.")
+        args = parser.parse_args()
+
+        echo(args.text, no_newline=args.no_newline, interpret_special_chars=args.interpret_special_chars)
+
+    except Exception as e:
+        # Gerer les erreurs lors de l'analyse des arguments de la ligne de commande
+        print(f"Erreur lors de l'analyse des arguments : {e}")
+        logging.error(f"Erreur lors de l'analyse des arguments : {e}")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import os
+import re
+import sys
+import logging
+from pathlib import Path
+
+def configure_logging():
+    try:
+        # Chemin du rï¿½pertoire log (chemin absolu)
+        log_directory = '/home/IDFS/var/log'
+        log_file_path = log_directory / "logfile.log"
+
+        # Crï¿½er le rï¿½pertoire log s'il n'existe pas
+        log_directory.mkdir(parents=True, exist_ok=True)
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file_path, level=logging.DEBUG,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+    except Exception as e:
+        print(f"Une erreur s'est produite lors de la configuration du logging : {e}")
+
+def custom_grep(pattern, directory='.', recursive=False, line_numbers=False, whole_word=False, invert_match=False):
+    try:
+        flags = 0
+
+        if whole_word:
+            pattern = r'' + re.escape(pattern) + r''
+
+        if invert_match:
+            flags |= re.IGNORECASE
+
+        regex = re.compile(pattern, flags)
+
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+
+                        for i, line in enumerate(lines, start=1):
+                            match = regex.search(line)
+                            if (match and not invert_match) or (invert_match and not match):
+                                if line_numbers:
+                                    print(f"{file_path}:{i}:{line.strip()}")
+                                    logging.info(f"{file_path}:{i}:{line.strip()}".encode('utf-8'))
+                                else:
+                                    print(f"{file_path}:{line.strip()}")
+                                    logging.info(f"{file_path}:{line.strip()}".encode('utf-8'))
+
+                except (OSError, UnicodeDecodeError):
+                    # Gï¿½rer les exceptions lors de l'ouverture ou de la lecture des fichiers
+                    error_message = f"Erreur lors de la lecture du fichier {file_path}."
+                    print(error_message)
+                    logging.error(error_message.encode('utf-8'))
+
+    except Exception as e:
+        error_message = f"Une erreur s'est produite : {e}"
+        print(error_message)
+        logging.error(error_message.encode('utf-8'))
+
+if __name__ == "__main__":
+    configure_logging()
+
+    if len(sys.argv) < 2:
+        error_message = "Usage: python script.py <pattern> [options]"
+        print(error_message)
+        logging.error(error_message.encode('utf-8'))
+        sys.exit(1)
+
+    pattern = sys.argv[1]
+    options = sys.argv[2:]
+
+    directory = '.'
+    recursive = '-r' in options
+    line_numbers = '-n' in options
+    whole_word = '-w' in options
+    invert_match = '-v' in options
+
+    custom_grep(pattern, directory, recursive, line_numbers, whole_word, invert_match)
+

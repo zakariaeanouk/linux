@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import os
+import sys
+import logging
+
+def configure_logging():
+    # Configurer le logging
+    base_directory = "/home/IDFS/var"
+    log_directory = os.path.join(base_directory, "log")
+    log_file = log_directory / "logfile.log"
+    os.makedirs(log_directory, exist_ok=True)
+
+    logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+def fmask(new_mask=None):
+    try:
+        if new_mask is not None:
+            # Convertir le nouveau masque en octal
+            new_mask = int(new_mask, 8)
+            os.umask(new_mask)
+            logging.info(f"Le masque de creation de fichiers a ete temporairement mis a jour : {new_mask:o}".encode('utf-8'))
+            print(f"Le masque de creation de fichiers a ete temporairement mis a jour : {new_mask:o}")
+        else:
+            current_mask = os.umask(0)  # Obtient le masque actuel sans le modifier
+            os.umask(current_mask)     # RÃ©tablit le masque Ã  sa valeur initiale
+            logging.info(f"Le masque de creation de fichiers actuel est : {current_mask:o}".encode('utf-8'))
+            print(f"Le masque de creation de fichiers actuel est : {current_mask:o}")
+    except ValueError:
+        error_message = f"Veuillez specifier un masque valide en octal."
+        logging.error(error_message.encode('utf-8'))
+        print(error_message)
+
+if __name__ == "__main__":
+    configure_logging()
+
+    if len(sys.argv) == 2:
+        fmask(sys.argv[1])
+    else:
+        fmask()
+

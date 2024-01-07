@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import os
+import logging
+
+# Emplacement du fichier simulÃ© IDFS/var/log/logfile.log (chemin relatif)
+log_file_path = '/home/IDFS/var/log/logfile.log'
+
+# Configuration du logging
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def galaxyautg():
+    try:
+        # VÃ©rifier si l'utilisateur actuel est root
+        if os.geteuid() != 0:
+            logging.error(f"Permission denied. Vous devez executer ce script en tant que superutilisateur (root).".encode('utf-8'))
+            return
+
+        # Saisie du nom d'utilisateur
+        username = input("Entrez le nom d'utilisateur : ")
+
+        # Saisie du nom du groupe
+        groupname = input("Entrez le nom du groupe : ")
+
+        # Emplacement du fichier simulÃ© IDFS/etc/group (chemin relatif)
+        group_file_path = '/home/IDFS/etc/group'
+
+        # VÃ©rifier si le groupe existe
+        with open(group_file_path, 'r') as group_file:
+            existing_groups = [line.strip() for line in group_file.readlines()]
+
+        # VÃ©rifier si le groupe existe
+        group_found = False
+        for i, line in enumerate(existing_groups):
+            parts = line.split(':')
+            if parts[0] == groupname:
+                group_found = True
+                parts[3] += f',{username}'  # Ajouter l'utilisateur Ã  la fin de la liste
+                existing_groups[i] = ':'.join(parts)  # Mettre Ã  jour la ligne dans la liste
+
+        if not group_found:
+            logging.warning(f"Le groupe {groupname} n'existe pas.".encode('utf-8'))
+            return
+
+        # RÃ©Ã©crire le fichier simulÃ© ID1FS/etc/group avec les modifications
+        with open(group_file_path, 'w') as group_file:
+             group_file.write(' '.join(existing_groups) + ' ')
+
+        logging.info(f"L'utilisateur {username} a ete ajoute au groupe {groupname} avec succes.".encode('utf-8'))
+
+    except Exception as e:
+        logging.exception(f"Une erreur inattendue s'est produite : {e}".encode('utf-8'))
+
+# Utilisation de la fonction
+galaxyautg()
+

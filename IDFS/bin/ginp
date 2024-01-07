@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*- 
+import subprocess
+import sys
+import os
+import logging
+
+def ginp(hostname):
+    log_path = '/home/IDFS/var/log/logfile.log'
+    logging.basicConfig(filename=log_path, level=logging.INFO, format='%(asctime)s - %(message)s')
+    
+    try:
+        result = subprocess.run(["ping", "-c", "4", hostname], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        # Enregistrement dans le fichier journal
+        logging.info(f"Ping result for {hostname}:{result.stdout}".encode('utf-8'))
+
+        # Affichage dans la console
+        print(f"Ping result for {hostname}:{result.stdout}")
+
+    except subprocess.CalledProcessError as e:
+        # Enregistrement dans le fichier journal en cas d'erreur
+        logging.error(f"Ping result for {hostname}: {result.stdout}".encode('utf-8'))
+        logging.error(f"Error output: {e.stderr}".encode('utf-8'))
+
+        # Affichage dans la console en cas d'erreur
+        print(f"Ping result for {hostname}: {result.stdout}")
+        print(f"Error output: {e.stderr}")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Utilisation : ginp <hostname>")
+        sys.exit(1)
+
+    hostname = sys.argv[1]
+    ginp(hostname)
+

@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import os
+import sys
+import pwd
+import logging
+
+def nchow(path, owner):
+    try:
+        # Obtenir le chemin du rÃ©pertoire log
+        base_directory = "/home/IDFS/var"
+        log_directory = os.path.join(base_directory, "log")
+        log_file = os.path.join(log_directory, "logfile.log")
+        os.makedirs(log_directory, exist_ok=True)
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+
+        # Correction de la ligne pour changer le propriÃ©taire
+        os.chown(path, -1, pwd.getpwnam(owner).pw_uid)
+        logging.info(f"Changement de proprietaire de {path} a {owner} effectue avec succes.".encode('utf-8'))
+        print(f"Changement de proprietaire de {path} a {owner} effectue avec succes.")
+
+    except FileNotFoundError:
+        error_message = f"Le fichier ou dossier {path} n'existe pas."
+        logging.error(error_message.encode('utf-8'))
+        print(error_message)
+
+    except PermissionError:
+        error_message = f"Permission refusee pour changer le proprietaire de {path}. Veuillez executer en tant qu'administrateur."
+        logging.error(error_message.encode('utf-8'))
+        print(error_message)
+
+    except Exception as e:
+        error_message = f"Une erreur s'est produite : {e}"
+        logging.error(error_message.encode('utf-8'))
+        print(error_message)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: nchow <chemin> <nouveau_proprietaire>")
+        sys.exit(1)
+
+    chemin = sys.argv[1]
+    nouveau_proprietaire = sys.argv[2]
+
+    nchow(chemin, nouveau_proprietaire)

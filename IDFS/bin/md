@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+# -- encoding: latin-1 --
+import os
+import json
+import sys
+
+def get_current_username():
+    return os.environ.get("USER") or os.environ.get("LOGNAME") or os.environ.get("USERNAME")
+
+def lire_metadonnees(nom_fichier):
+    username = get_current_username()
+    # Si l'utilisateur est root, utilisez "/home/IDFS/etc/metadata_root" au lieu de "/home/IDFS/etc/metadata_{username}"
+    chemin_metadata = f'/home/IDFS/etc/metadata_root' if username == 'root' else f'/home/IDFS/etc/metadata_{username}'
+
+    if os.path.exists(chemin_metadata):
+        with open(chemin_metadata, 'r') as fichier_metadata:
+            metadonnees_globales = json.load(fichier_metadata)
+            # Chercher les mÃÂ©tadonnÃÂ©es spÃÂ©cifiques au fichier
+            for metadonnees in metadonnees_globales:
+                # VÃ©rifier si la clÃ© 'Nom du fichier' est prÃ©sente avant de l'accÃ©der
+                if 'Nom du fichier' in metadonnees and metadonnees['Nom du fichier'] == nom_fichier:
+                    return metadonnees
+            # Si les mÃÂ©tadonnÃÂ©es pour le fichier spÃÂ©cifiÃÂ© ne sont pas trouvÃÂ©es
+            return None
+    else:
+        return None
+
+# VÃÂ©rification de la prÃÂ©sence du nom de fichier en ligne de commande
+if len(sys.argv) != 2:
+    print("Utilisation: python script.py <nom_fichier>")
+    sys.exit(1)
+
+nom_fichier = sys.argv[1]
+
+metadonnees = lire_metadonnees(nom_fichier)
+
+if metadonnees:
+    print(f"MÃ©tadonnÃ©es pour le fichier '{nom_fichier}' de l'utilisateur '{get_current_username()}':")
+    for cle, valeur in metadonnees.items():
+        print(f"{cle}: {valeur}")
+else:
+    print(f"Aucune mÃ©tadonnÃ©e trouvÃ©e pour le fichier '{nom_fichier}' de l'utilisateur '{get_current_username()}'.")
+
+
+  

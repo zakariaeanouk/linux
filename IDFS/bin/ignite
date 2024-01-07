@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-     
+import os
+import sys
+from pathlib import Path
+from datetime import datetime
+import json
+import getpass
+import logging
+
+# Emplacement du fichier simulÃ© IDFS/var/log/file.log (chemin relatif)
+log_file_path = '/home/IDFS/var/log/logfile.log'
+
+# Configuration du logging
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+def create_file(file_path):
+    try:
+        # Get the current username
+        username = getpass.getuser()
+
+        # Check if the current user is root
+        is_root = os.geteuid() == 0
+
+        if is_root:
+            # If root creates a file, use "root" as the username
+            username = "root"
+
+            # Create the home directory for root in /home (absolute path)
+            root_home_directory = f'/home/IDFS/home/{username}'
+            Path(root_home_directory).mkdir(parents=True, exist_ok=True)
+
+        # User's home directory path in IDFS (absolute path)
+        base_directory = f'/home/IDFS/home/{username}'
+
+        file_path = Path(os.path.join(base_directory, file_path))
+
+        # Check if the file already exists
+        if file_path.is_file():
+            message = f"Failure: The file '{file_path}' already exists."
+            logging.warning(message.encode('utf-8'))
+            print(message)
+        else:
+            file_path.touch()
+            message = f"File created successfully: {file_path}"
+            logging.info(message.encode('utf-8'))
+            print(message)
+
+            # Record metadata after file creation
+            update_metadata(file_path, username)
+
+    except Exception as e:
+        message = f"Error creating the file: {str(e)}"
+        logging.error(message.encode('utf-8'))
+        print(message)
+
+def update_metadata(filename, username):
+    try:
+        # Retrieve file information
+        stat_info = os.stat(filename)
+
+        # Convert the creation date timestamp to a readable format
+        creation_date = datetime.fromtimestamp(stat_info.st_ctime).strftime('%Y-%m-%d %H:%M:%S')
+
+        # Convert the last modification date timestamp to a readable format
+        modification_date = datetime.fromtimestamp(stat_info.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+
+        # Create a metadata dictionary
+        metadata = {
+            "File Name": str(filename),
+            "Creation Date": creation_date,
+            "Modification Date": modification_date,
+            "File Size": stat_info.st_size,
+            "Permissions": oct(stat_info.st_mode)[-3:],  # Octal format
+        }
+
+        # Metadata file path
+        output_file = f'/home/IDFS/etc/metadata_{username}'
+
+        # Check if the metadata file exists
+        if not Path(output_file).is_file():
+            # If it doesn't exist, create the file and add the new metadata
+            with open(output_file, "w") as f:
+                f.write(json.dumps([metadata], indent=2))
+            print(f"Metadata file created at {output_file}")
+        else:
+            # If it exists, read the existing metadata
+            with open(output_file, "r") as f:
+                try:
+                    existing_metadata = json.load(f)
+                except json.JSONDecodeError:
+                    existing_metadata = []
+
+            # Add the new metadata to the existing list
+            existing_metadata.append(metadata)
+
+            # Write the updated list to the file
+            with open(output_file, "w") as f:
+                f.write(json.dumps(existing_metadata, indent=2))
+
+            print(f"Metadata added to {output_file}")
+
+    except FileNotFoundError:
+        message = f"The file '{filename}' does not exist."
+        logging.error(message.encode('utf-8'))
+        print(message)
+    except Exception as e:
+        message = f"An error occurred: {e}"
+        logging.error(message.encode('utf-8'))
+        print(message)
+
+# Usage of the file command
+if len(sys.argv) != 2:
+    message = f"Usage: python script.py <file_path>"
+    logging.error(message.encode('utf-8'))
+    print(message)
+else:
+    file_path = sys.argv[1]
+    create_file(file_path)
+   

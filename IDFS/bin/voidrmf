@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import os
+import shutil
+import logging
+
+def configure_logging():
+    # Configurer le logging
+    base_directory = "IDFS/var"
+    log_directory = os.path.join(base_directory, "log")
+    log_file =  os.path.join(log_directory, "logfile.log")
+    os.makedirs(log_directory,exist_ok=True)
+    logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+def deletef(target_path):
+    try:
+        if os.path.isfile(target_path):
+            os.remove(target_path)
+            success_message = f"Le fichier {target_path} a ete supprime."
+            print(success_message)
+            logging.info(success_message.encode('utf-8'))
+        elif os.path.isdir(target_path):
+            shutil.rmtree(target_path)
+            success_message = f"Le repertoire {target_path} et son contenu ont ete supprimes."
+            print(success_message)
+            logging.info(success_message.encode('utf-8'))
+        else:
+            error_message = f"{target_path} n'est ni un fichier ni un repertoire."
+            print(error_message)
+            logging.warning(error_message.encode('utf-8'))
+    except FileNotFoundError:
+        error_message = f"Le fichier ou le repertoire {target_path} n'existe pas."
+        print(error_message)
+        logging.warning(error_message.encode('utf-8'))
+    except Exception as e:
+        error_message = f"Une erreur s'est produite : {e}"
+        print(error_message)
+        logging.error(error_message.encode('utf-8'))
+
+if __name__ == "__main__":
+    configure_logging()
+
+    if len(sys.argv) != 2:
+        error_message = "Usage: python my_rm.py <target_path>"
+        print(error_message)
+        logging.error(error_message.encode('utf-8'))
+        sys.exit(1)
+
+    target_path = sys.argv[1]
+    deletef(target_path)

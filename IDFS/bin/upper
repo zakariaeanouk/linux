@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import argparse
+import logging
+from pathlib import Path
+
+def head(file_path, num_lines=None, num_chars=None):
+    try:
+       
+
+        # Chemin du fichier de logs (chemin relatif)
+        log_file_path = 'IDFS/var/log/logfile.log'
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+
+        # Chemin du fichier Ã  ouvrir (chemin relatif)
+        file_path = file_path
+
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+
+            if num_chars:
+                logging.info(f"Affichage des premiers {num_chars} caracteres du fichier {file_path}.".encode('utf-8'))
+                print(content[:num_chars])
+            elif num_lines:
+                lines = content.splitlines()[:num_lines]
+                logging.info(f"Affichage des premieres {num_lines} lignes du fichier {file_path}.".encode('utf-8'))
+                print(' '.join(lines))
+            else:
+                logging.info(f"Affichage du contenu complet du fichier {file_path}.".encode('utf-8'))
+                print(content.upper())
+
+    except Exception as e:
+        logging.error(f"Erreur inattendue : {e}".encode('utf-8'))
+
+def main():
+    parser = argparse.ArgumentParser(description='Imiter la commande head en Python.')
+    parser.add_argument('file_path', metavar='FICHIER', type=str, help='Chemin du fichier a afficher.')
+    parser.add_argument('-n', '--lines', metavar='NOMBRE', type=int, default=None, help='Nombre de lignes a afficher.')
+    parser.add_argument('-c', '--chars', metavar='NOMBRE', type=int, default=None, help='Nombre de caracteres a afficher.')
+    args = parser.parse_args()
+
+    head(args.file_path, args.lines, args.chars)
+
+if __name__ == "__main__":
+    main()
+

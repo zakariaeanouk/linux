@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-          
+import sys
+import logging
+from pathlib import Path
+
+def configure_logging():
+    # Configurer le logging
+    base_directory = "/home/IDFS/var"
+    log_directory = Path(base_directory) / "log"
+    log_file = log_directory / "logfile.log"
+    log_directory.mkdir(parents=True, exist_ok=True)
+
+    logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+def galaxycat(chemin):
+    try:
+        chemin_fichier = Path(chemin).resolve()
+        # Vï¿½rifier si le fichier existe
+        if not chemin_fichier.is_file():
+            error_message = f"Echec : Le fichier '{chemin_fichier}' n'existe pas."
+            print(error_message)
+            logging.error(error_message)
+        else:
+            # Lire et afficher le contenu du fichier
+            with open(chemin_fichier, 'r') as fichier:
+                content = fichier.read()
+                print(content)
+                logging.info(f"Contenu du fichier '{chemin_fichier}': {content}")
+
+    except FileNotFoundError as e:
+        error_message = f"Echec : Le fichier '{chemin}' n'a pas ï¿½tï¿½ trouvï¿½ : {str(e)}"
+        print(error_message)
+        logging.error(error_message)
+    except Exception as e:
+        error_message = f"Erreur lors de la lecture du fichier '{chemin}' : {str(e)}"
+        print(error_message)
+        logging.error(error_message)
+
+if __name__ == "__main__":
+    configure_logging()
+
+    # Utilisation de la commande content
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <chemin_du_fichier>")
+    else:
+        chemin_fichier = sys.argv[1]
+        galaxycat(chemin_fichier)
+        
+

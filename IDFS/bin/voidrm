@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+ # -*- coding: utf-8 -*-
+import os
+import sys
+import logging
+
+def configure_logging():
+    # Configurer le logging
+    base_directory = "/home/IDFS/var"
+    log_directory = os.path.join(base_directory, "log")
+    log_file = os.path.join(log_directory,"logfile.log")
+    os.makedirs(log_directory, exist_ok=True)
+
+    logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+def delet(chemin):
+    try:
+        chemin_fichier = os.path.abspath(chemin)  # Obtient le chemin absolu du fichier
+        os.remove(chemin_fichier)
+        success_message = f"Fichier supprime avec succes : {chemin_fichier}"
+        print(success_message)
+        logging.info(success_message.encode('utf-8'))
+    except FileNotFoundError:
+        error_message = f"Echec : Le fichier '{chemin}' n'existe pas."
+        print(error_message.encode('utf-8'))
+        logging.warning(error_message.encode('utf-8'))
+    except Exception as e:
+        error_message = f"Erreur lors de la suppression du fichier : {str(e)}"
+        print(error_message.encode('utf-8'))
+        logging.error(error_message.encode('utf-8'))
+
+if __name__ == "__main__":
+    configure_logging()
+
+    # Utilisation de la commande delet
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <chemin_du_fichier>")
+    else:
+        chemin_fichier = sys.argv[1]
+        delet(chemin_fichier)
+ 

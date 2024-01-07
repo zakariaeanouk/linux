@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-     
+import argparse
+import logging
+
+def wc(file_path, option):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+        lines = content.count('/n')
+        words = len(content.split())
+        bytes_count = len(content.encode('utf-8'))
+        characters = len(content)
+
+        if option == '-l':
+            logging.info(f"Number of lines: {lines}".encode('utf-8'))
+        elif option == '-m':
+            logging.info(f"Number of words: {words}".encode('utf-8'))
+        elif option == '-c':
+            logging.info(f"Number of characters: {characters}".encode('utf-8'))
+        elif option == '-b':
+            logging.info(f"Number of bytes: {bytes_count}".encode('utf-8'))
+        else:
+            logging.warning("Unknown option")
+
+def main():
+    logging.basicConfig(filename='/home/IDFS/var/log/logfile.log', level=logging.INFO, format='%(asctime)s [%(levelname)s]: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    parser = argparse.ArgumentParser(description='Emettre la commande wc en Python')
+    parser.add_argument('file_path', metavar='FILE', type=str, help='Path to the file to count')
+    parser.add_argument('-l', action='store_const', const='-l', dest='option', help='Display the number of lines.')
+    parser.add_argument('-m', action='store_const', const='-m', dest='option', help='Display the number of words.')
+    parser.add_argument('-c', action='store_const', const='-c', dest='option', help='Display the number of characters.')
+    parser.add_argument('-b', action='store_const', const='-b', dest='option', help='Display the number of bytes')
+    args = parser.parse_args()
+
+    wc(args.file_path, args.option)
+
+if __name__ == "__main__":
+    main()
+

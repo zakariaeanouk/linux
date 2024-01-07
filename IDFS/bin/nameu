@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import getpass
+import logging
+from pathlib import Path
+
+def configure_logging():
+    try:
+       
+        # Chemin du rÃ©pertoire log (chemin relatif)
+        log_directory =  '/home/IDFS/var/log'
+
+        # Chemin du fichier de logs (chemin relatif)
+        log_file = log_directory / "logfile.log"
+
+
+        # CrÃ©er le rÃ©pertoire log s'il n'existe pas
+        log_directory.mkdir(parents=True, exist_ok=True)
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file, level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    except Exception as e:
+        print(f"Une erreur s'est produite lors de la configuration du logging : {e}")
+
+def get_username():
+    try:
+        # Obtenir le nom d'utilisateur actuel
+        username = getpass.getuser()
+
+        # Afficher le nom d'utilisateur
+        print(f"User name : {username}")
+
+        # Enregistrer le nom d'utilisateur dans le fichier de logs
+        logging.info(f"Nom d'utilisateur actuel : {username}".encode('utf-8'))
+
+    except Exception as e:
+        # GÃ©rer les erreurs et les enregistrer dans le fichier de logs
+        print(f"Une erreur s'est produite : {e}")
+        logging.error(f"Erreur lors de l'obtention du nom d'utilisateur : {e}")
+
+if __name__ == "__main__":
+    configure_logging()
+    get_username()

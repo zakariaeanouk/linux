@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import psutil
+import logging
+from pathlib import Path
+
+def main():
+    try:
+     
+        log_directory = '/home/IDFS/var/log'
+
+        # Chemin du fichier de logs (chemin relatif)
+        log_file = log_directory / "logfile.log"
+
+
+        # CrÃ©er le rÃ©pertoire log s'il n'existe pas
+        log_directory.mkdir(parents=True, exist_ok=True)
+
+        # Configuration du logging
+        logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+        processes = psutil.process_iter(['pid', 'name', 'username'])
+       
+        for process in processes:
+            logging.info(process.info.encode('utf-8'))
+    except Exception as e:
+        logging.error(f"Une erreur s'est produite : {e}".encode('utf-8'))
+
+if __name__ == "__main__":
+    main()

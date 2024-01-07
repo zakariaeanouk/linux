@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-     
+import os
+import logging
+
+def configure_logging():
+    # Configurer le logging
+    base_directory = "/home/IDFS/var"
+    log_directory = os.path.join(base_directory, "log")
+    log_file = log_directory / "logfile.log"
+    os.makedirs(log_directory, exist_ok=True)
+
+    logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+def cwd():
+    try:
+        # Obtenir le repertoire de travail actuel
+        current_working_directory = os.getcwd()
+
+        # Afficher le repertoire de travail actuel
+        print(current_working_directory)
+
+        # Enregistrer le rÃ©pertoire de travail actuel dans le fichier de logs
+        logging.info(f"Repertoire de travail actuel : {current_working_directory}".encode('utf-8'))
+
+    except Exception as e:
+        # GÃ©rer les erreurs et les enregistrer dans le fichier de logs
+        print(f"Une erreur s'est produite : {e}")
+        logging.error(f"Erreur lors de l'obtention du repertoire de travail actuel : {e}".encode('utf-8'))
+
+if __name__ == "__main__":
+    configure_logging()
+    cwd()
